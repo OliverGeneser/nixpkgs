@@ -22,7 +22,7 @@ buildPythonPackage rec {
     owner = "python-debian-team";
     repo = "python-debian";
     tag = version;
-    hash = "sha256-+c+AiUCnpasOLbY6K4cuKUb6Ojwn0py78fL5W24WRwU=";
+    hash = "sha256-9+U5iwXSLEL1cUiUfp/NKnGdInhnTIBn6/82gLi2hDQ=";
   };
 
   build-system = [
