@@ -428,6 +428,7 @@ with pkgs;
     powerdns = python3Packages.callPackage ../tools/networking/octodns/providers/powerdns { };
     cloudflare = python3Packages.callPackage ../tools/networking/octodns/providers/cloudflare { };
     ddns = python3Packages.callPackage ../tools/networking/octodns/providers/ddns { };
+    transip = python3Packages.callPackage ../tools/networking/octodns/providers/transip { };
   };
 
   oletools = with python3.pkgs; toPythonApplication oletools;
@@ -1113,15 +1114,6 @@ with pkgs;
 
   fontbakery = with python3Packages; toPythonApplication fontbakery;
 
-  weylus = callPackage ../applications/graphics/weylus {
-    inherit (darwin.apple_sdk.frameworks)
-      ApplicationServices
-      Carbon
-      Cocoa
-      VideoToolbox
-      ;
-  };
-
   genealogos-api = genealogos-cli.override {
     crate = "api";
   };
@@ -1652,9 +1644,7 @@ with pkgs;
   xst = callPackage ../applications/terminal-emulators/st/xst.nix { };
   mcaimi-st = callPackage ../applications/terminal-emulators/st/mcaimi-st.nix { };
 
-  stupidterm = callPackage ../applications/terminal-emulators/stupidterm {
-    gtk = gtk3;
-  };
+  stupidterm = callPackage ../applications/terminal-emulators/stupidterm { };
 
   termite = callPackage ../applications/terminal-emulators/termite/wrapper.nix {
     termite = termite-unwrapped;
@@ -2064,7 +2054,7 @@ with pkgs;
 
   babelfish = callPackage ../shells/fish/babelfish.nix { };
 
-  bat-extras = recurseIntoAttrs (callPackages ../tools/misc/bat-extras { });
+  bat-extras = recurseIntoAttrs (lib.makeScope newScope (callPackage ../tools/misc/bat-extras { }));
 
   beauty-line-icon-theme = callPackage ../data/icons/beauty-line-icon-theme {
     inherit (plasma5Packages) breeze-icons;
@@ -2692,7 +2682,7 @@ with pkgs;
 
   steampipePackages = recurseIntoAttrs (callPackage ../tools/misc/steampipe-packages { });
 
-  swappy = callPackage ../applications/misc/swappy { gtk = gtk3; };
+  swappy = callPackage ../applications/misc/swappy { };
 
   synth = callPackage ../tools/misc/synth {
     inherit (darwin.apple_sdk.frameworks) AppKit Security;
@@ -3140,9 +3130,7 @@ with pkgs;
 
   dconf2nix = callPackage ../development/tools/haskell/dconf2nix { };
 
-  devilspie2 = callPackage ../applications/misc/devilspie2 {
-    gtk = gtk3;
-  };
+  devilspie2 = callPackage ../applications/misc/devilspie2 { };
 
   ddcui = libsForQt5.callPackage ../applications/misc/ddcui { };
 
@@ -3153,8 +3141,6 @@ with pkgs;
     ;
 
   deluge-2_x = deluge;
-
-  dnsviz = python3Packages.callPackage ../tools/networking/dnsviz { };
 
   diffoscopeMinimal = diffoscope.override {
     enableBloat = false;
@@ -3455,14 +3441,6 @@ with pkgs;
 
   fstl = qt5.callPackage ../applications/graphics/fstl { };
 
-  fdbPackages = dontRecurseIntoAttrs (callPackage ../servers/foundationdb { });
-
-  inherit (fdbPackages)
-    foundationdb73
-    ;
-
-  foundationdb = foundationdb73;
-
   fuse-ext2 = darwin.apple_sdk_11_0.callPackage ../tools/filesystems/fuse-ext2 { };
 
   fwknop = callPackage ../tools/security/fwknop {
@@ -3502,13 +3480,9 @@ with pkgs;
 
   gawkInteractive = gawk.override { interactive = true; };
 
-  gbdfed = callPackage ../tools/misc/gbdfed {
-    gtk = gtk2-x11;
-  };
+  gbdfed = callPackage ../tools/misc/gbdfed { };
 
-  gftp = callPackage ../applications/networking/ftp/gftp {
-    gtk = gtk2;
-  };
+  gftp = callPackage ../applications/networking/ftp/gftp { };
 
   ggshield = callPackage ../tools/security/ggshield {
     python3 = python311;
@@ -4332,7 +4306,6 @@ with pkgs;
   mangohud = callPackage ../tools/graphics/mangohud {
     libXNVCtrl = linuxPackages.nvidia_x11.settings.libXNVCtrl;
     mangohud32 = pkgsi686Linux.mangohud;
-    inherit (python3Packages) mako;
   };
 
   marimo = with python3Packages; toPythonApplication marimo;
@@ -4510,7 +4483,7 @@ with pkgs;
 
   nifskope = libsForQt5.callPackage ../tools/graphics/nifskope { };
 
-  nlopt = callPackage ../development/libraries/nlopt { octave = null; };
+  nlopt = callPackage ../development/libraries/nlopt { };
 
   notation = callPackage ../by-name/no/notation/package.nix {
     buildGoModule = buildGo123Module;
@@ -5720,6 +5693,9 @@ with pkgs;
 
   ### DEVELOPMENT / COMPILERS
 
+  temurin-bin-24 = javaPackages.compiler.temurin-bin.jdk-24;
+  temurin-jre-bin-24 = javaPackages.compiler.temurin-bin.jre-24;
+
   temurin-bin-23 = javaPackages.compiler.temurin-bin.jdk-23;
   temurin-jre-bin-23 = javaPackages.compiler.temurin-bin.jre-23;
 
@@ -6676,6 +6652,8 @@ with pkgs;
       lldb_20 = llvmPackages_20.lldb;
       llvm_20 = llvmPackages_20.llvm;
       bolt_20 = llvmPackages_20.bolt;
+
+      mkLLVMPackages = llvmPackagesSet.mkPackage;
     })
     llvmPackages_12
     llvmPackages_13
@@ -6700,6 +6678,7 @@ with pkgs;
     lldb_20
     llvm_20
     bolt_20
+    mkLLVMPackages
     ;
 
   lorri = callPackage ../tools/misc/lorri {
@@ -6815,13 +6794,6 @@ with pkgs;
   open-watcom-v2 = wrapWatcom open-watcom-v2-unwrapped { };
   open-watcom-bin-unwrapped = callPackage ../development/compilers/open-watcom/bin.nix { };
   open-watcom-bin = wrapWatcom open-watcom-bin-unwrapped { };
-
-  ponyc = callPackage ../development/compilers/ponyc {
-    # Upstream pony no longer supports GCC
-    stdenv = llvmPackages.stdenv;
-  };
-
-  pony-corral = callPackage ../development/compilers/ponyc/pony-corral.nix { };
 
   replibyte = callPackage ../development/tools/database/replibyte {
     inherit (darwin.apple_sdk.frameworks) Security SystemConfiguration;
@@ -7411,7 +7383,6 @@ with pkgs;
         newScope
         lxqt
         lib
-        libsForQt5
         ;
     }
   );
@@ -8326,7 +8297,6 @@ with pkgs;
   gnumake = callPackage ../development/tools/build-managers/gnumake { };
   gradle-packages = import ../development/tools/build-managers/gradle {
     inherit
-      jdk11
       jdk17
       jdk21
       jdk23
@@ -8460,8 +8430,6 @@ with pkgs;
       wrap ${targetPackages.stdenv.cc.bintools.targetPrefix}mold ${../build-support/bintools-wrapper/ld-wrapper.sh} ${mold}/bin/mold
     '';
   };
-
-  moon = callPackage ../development/tools/build-managers/moon/default.nix { };
 
   mopsa = ocamlPackages.mopsa.bin;
 
@@ -9630,9 +9598,7 @@ with pkgs;
 
   gtk-sharp-3_0 = callPackage ../development/libraries/gtk-sharp/3.0.nix { };
 
-  gtk-mac-integration = callPackage ../development/libraries/gtk-mac-integration {
-    gtk = gtk3;
-  };
+  gtk-mac-integration = callPackage ../development/libraries/gtk-mac-integration { };
 
   gtk-mac-integration-gtk2 = gtk-mac-integration.override {
     gtk = gtk2;
@@ -9856,7 +9822,7 @@ with pkgs;
 
   libappindicator-gtk2 = libappindicator.override { gtkVersion = "2"; };
   libappindicator-gtk3 = libappindicator.override { gtkVersion = "3"; };
-  libarchive-qt = libsForQt5.callPackage ../development/libraries/libarchive-qt { };
+  libarchive-qt = callPackage ../development/libraries/libarchive-qt { };
 
   libaribcaption = callPackage ../by-name/li/libaribcaption/package.nix {
     inherit (darwin.apple_sdk.frameworks)
@@ -10488,8 +10454,6 @@ with pkgs;
 
   mlt = darwin.apple_sdk_11_0.callPackage ../development/libraries/mlt { };
 
-  mlv-app = libsForQt5.callPackage ../applications/video/mlv-app { };
-
   mpeg2dec = libmpeg2;
 
   msoffcrypto-tool = with python3.pkgs; toPythonApplication msoffcrypto-tool;
@@ -10631,7 +10595,6 @@ with pkgs;
     # TODO: LTO does not work.
     # https://github.com/NixOS/nixpkgs/issues/343123
     enableLto = false;
-    openexr = openexr_2;
   };
 
   opencv4WithoutCuda = opencv4.override {
@@ -11991,7 +11954,7 @@ with pkgs;
     nodejs-slim = nodejs-slim_22;
     python3 = python311;
     ruby = ruby_3_3;
-    yarn-berry = yarn-berry.override { nodejs = nodejs-slim_22; };
+    yarn-berry = yarn-berry_4.override { nodejs = nodejs-slim_22; };
   };
 
   micro-full = micro.wrapper.override {
@@ -12121,10 +12084,6 @@ with pkgs;
     withPerl = false;
     modules = [ ];
   };
-
-  opensmtpd = callPackage ../servers/mail/opensmtpd { };
-  opensmtpd-extras = callPackage ../servers/mail/opensmtpd/extras.nix { };
-  opensmtpd-filter-rspamd = callPackage ../servers/mail/opensmtpd/filter-rspamd.nix { };
 
   system-sendmail = lowPrio (callPackage ../servers/mail/system-sendmail { });
 
@@ -13107,9 +13066,6 @@ with pkgs;
     withoutInitTools = true;
   };
 
-  # FIXME: `tcp-wrapper' is actually not OS-specific.
-  trickster = callPackage ../servers/trickster/trickster.nix { };
-
   trinsic-cli = callPackage ../tools/admin/trinsic-cli {
     inherit (darwin.apple_sdk.frameworks) Security;
   };
@@ -13710,10 +13666,6 @@ with pkgs;
     inherit (haskellPackages) ghcWithPackages;
   };
 
-  bluefish = callPackage ../applications/editors/bluefish {
-    gtk = gtk3;
-  };
-
   breezy = with python3Packages; toPythonApplication breezy;
 
   calf = callPackage ../applications/audio/calf {
@@ -13871,8 +13823,6 @@ with pkgs;
   inherit (callPackage ../development/tools/devpod { }) devpod devpod-desktop;
 
   dfasma = libsForQt5.callPackage ../applications/audio/dfasma { };
-
-  dfilemanager = libsForQt5.callPackage ../applications/file-managers/dfilemanager { };
 
   direwolf = callPackage ../applications/radio/direwolf {
     hamlib = hamlib_4;
@@ -14368,9 +14318,7 @@ with pkgs;
 
   gimpPlugins = recurseIntoAttrs (callPackage ../applications/graphics/gimp/plugins { });
 
-  girara = callPackage ../applications/misc/girara {
-    gtk = gtk3;
-  };
+  girara = callPackage ../applications/misc/girara { };
 
   gtk-pipe-viewer = perlPackages.callPackage ../applications/video/pipe-viewer { withGtk3 = true; };
 
@@ -14438,10 +14386,6 @@ with pkgs;
     jdk = jdk.override { enableJavaFX = true; };
   };
 
-  gkrellm = callPackage ../applications/misc/gkrellm {
-    inherit (darwin.apple_sdk.frameworks) IOKit;
-  };
-
   gnunet = callPackage ../applications/networking/p2p/gnunet { };
 
   gnunet-gtk = callPackage ../applications/networking/p2p/gnunet/gtk.nix { };
@@ -14453,7 +14397,7 @@ with pkgs;
   graphicsmagick_q16 = graphicsmagick.override { quantumdepth = 16; };
   graphicsmagick-imagemagick-compat = graphicsmagick.imagemagick-compat;
 
-  grisbi = callPackage ../applications/office/grisbi { gtk = gtk3; };
+  grisbi = callPackage ../applications/office/grisbi { };
 
   q4wine = libsForQt5.callPackage ../applications/misc/q4wine { };
 
@@ -15489,8 +15433,7 @@ with pkgs;
     inherit (darwin.apple_sdk.frameworks) AppKit;
   };
 
-  openimageio = darwin.apple_sdk_11_0.callPackage ../development/libraries/openimageio {
-  };
+  openimageio_2 = callPackage ../by-name/op/openimageio/2.nix { };
 
   open-music-kontrollers = lib.recurseIntoAttrs {
     eteroj = callPackage ../applications/audio/open-music-kontrollers/eteroj.nix { };
@@ -16048,7 +15991,7 @@ with pkgs;
     pythonBindings = true;
   };
 
-  surf = callPackage ../applications/networking/browsers/surf { gtk = gtk2; };
+  surf = callPackage ../applications/networking/browsers/surf { };
 
   surge = callPackage ../applications/audio/surge {
     git = gitMinimal;
@@ -16436,8 +16379,8 @@ with pkgs;
 
   vscode-extensions = recurseIntoAttrs (callPackage ../applications/editors/vscode/extensions { });
 
-  vscode-extensions-update-script =
-    callPackage ../by-name/vs/vscode-extensions-update/vscode-extensions-update-script.nix
+  vscode-extension-update-script =
+    callPackage ../by-name/vs/vscode-extension-update/vscode-extension-update-script.nix
       { };
 
   vscode-js-debug = callPackage ../by-name/vs/vscode-js-debug/package.nix {
@@ -16509,9 +16452,9 @@ with pkgs;
 
   webcamoid = qt6Packages.callPackage ../applications/video/webcamoid { };
 
-  webcord = callPackage ../by-name/we/webcord/package.nix { electron = electron_34; };
+  webcord = callPackage ../by-name/we/webcord/package.nix { electron = electron_35; };
 
-  webcord-vencord = callPackage ../by-name/we/webcord-vencord/package.nix { electron = electron_33; };
+  webcord-vencord = callPackage ../by-name/we/webcord-vencord/package.nix { electron = electron_34; };
 
   webmacs = libsForQt5.callPackage ../applications/networking/browsers/webmacs {
     stdenv = if stdenv.cc.isClang then gccStdenv else stdenv;
@@ -17035,13 +16978,6 @@ with pkgs;
 
   ddnet-server = ddnet.override { buildClient = false; };
 
-  devilutionx = callPackage ../games/devilutionx {
-    fmt = fmt_9;
-    SDL2_classic = SDL2_classic.override {
-      withStatic = true;
-    };
-  };
-
   duckmarines = callPackage ../games/duckmarines { love = love_0_10; };
 
   dwarf-fortress-packages = recurseIntoAttrs (callPackage ../games/dwarf-fortress { });
@@ -17145,7 +17081,7 @@ with pkgs;
 
   garden-of-coloured-lights = callPackage ../games/garden-of-coloured-lights { allegro = allegro4; };
 
-  gcompris = libsForQt5.callPackage ../games/gcompris { };
+  gcompris = kdePackages.callPackage ../games/gcompris { };
 
   gl-gsync-demo = callPackage ../games/gl-gsync-demo {
     libXNVCtrl = linuxPackages.nvidia_x11.settings.libXNVCtrl;
@@ -17181,9 +17117,7 @@ with pkgs;
     useProprietaryAssets = false;
   };
 
-  ldmud = callPackage ../games/ldmud { };
-
-  ldmud-full = callPackage ../games/ldmud {
+  ldmud-full = callPackage ../by-name/ld/ldmud/package.nix {
     ipv6Support = true;
     mccpSupport = true;
     mysqlSupport = true;
@@ -17644,9 +17578,7 @@ with pkgs;
   # Needed for elementary's gala, wingpanel and greeter until support for higher versions is provided
   pantheon = recurseIntoAttrs (callPackage ../desktops/pantheon { });
 
-  rox-filer = callPackage ../desktops/rox/rox-filer {
-    gtk = gtk2;
-  };
+  rox-filer = callPackage ../desktops/rox/rox-filer { };
 
   xfce = recurseIntoAttrs (callPackage ../desktops/xfce { });
 
@@ -18345,8 +18277,6 @@ with pkgs;
 
   brgenml1lpr = pkgsi686Linux.callPackage ../misc/cups/drivers/brgenml1lpr { };
 
-  calaos_installer = libsForQt5.callPackage ../misc/calaos/installer { };
-
   clinfo = callPackage ../tools/system/clinfo {
     inherit (darwin.apple_sdk.frameworks) OpenCL;
   };
@@ -18807,8 +18737,6 @@ with pkgs;
 
   qtrvsim = libsForQt5.callPackage ../applications/science/computer-architecture/qtrvsim { };
 
-  qzdl = libsForQt5.callPackage ../games/qzdl { };
-
   rbspy = darwin.apple_sdk_11_0.callPackage ../development/tools/rbspy { };
 
   pick-colour-picker = python3Packages.callPackage ../applications/graphics/pick-colour-picker {
@@ -18994,6 +18922,7 @@ with pkgs;
   inherit (callPackage ../servers/web-apps/wordpress { })
     wordpress
     wordpress_6_7
+    wordpress_6_8
     ;
 
   wordpressPackages = recurseIntoAttrs (
